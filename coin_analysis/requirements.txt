@@ -2,3 +2,5 @@ python-binance
 pandas
 matplotlib
 python-coinmarketcap
+tabulate
+scikit-learn

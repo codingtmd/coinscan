@@ -1,21 +1,25 @@
 
 import os
+import numpy as np 
 import pandas as pd
 from binance.client import Client
 from coinmarketcapapi import CoinMarketCapAPI, CoinMarketCapAPIError
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 
-# --- Configuration ---
-# Replace with your actual API keys
-BINANCE_API_KEY = ""
-BINANCE_API_SECRET = ""
-COINMARKETCAP_API_KEY = ""
+# --- Grouping Method ---
+# Choose the grouping method: 'terciles', 'thresholds', or 'kmeans'
+GROUPING_METHOD = 'thresholds'
+
+# Thresholds for 'thresholds' method
+LOW_CAP_THRESHOLD = 100_000_000  # 100 Million
+MID_CAP_THRESHOLD = 1_000_000_000  # 1 Billion
 
 # Number of past days to fetch data fors
 N_DAYS = 1
 
 # Output directory
-OUTPUT_DIR = "analysis_output"
+OUTPUT_DIR_PREFIX = "analysis_output"
 
 # --- Functions ---
 
@@ -29,6 +33,7 @@ def get_daily_data(client, symbol, n_days=1):
     """Gets the last n days of k-line data for a symbol."""
     klines = client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1DAY, f"{n_days} day ago UTC")
     if not klines:
+        print(f"{symbol} Not have trade data")
         return None
     
     df = pd.DataFrame(klines, columns=[
@@ -46,6 +51,7 @@ def get_market_cap_data(cmc_client, symbols):
     # CMC library expects symbols without USDT
     base_symbols = [s.replace('USDT', '') for s in symbols]
     
+    
     try:
         # Fetching quotes for the symbols
         response = cmc_client.cryptocurrency_quotes_latest(symbol=','.join(base_symbols))
@@ -53,7 +59,8 @@ def get_market_cap_data(cmc_client, symbols):
         market_caps = {}
         for symbol_base in base_symbols:
             if symbol_base in response.data:
-                data = response.data[symbol_base]
+                data = response.data[symbol_base][0]
+                print(data)
                 quote_usd = data['quote']['USD']
                 market_caps[symbol_base + 'USDT'] = {
                     'unlocked_mkt_cap': quote_usd.get('market_cap'),
@@ -62,6 +69,8 @@ def get_market_cap_data(cmc_client, symbols):
                     'volume_24h': quote_usd.get('volume_24h'),
                     'volume_market_cap_24h': quote_usd.get('volume_24h') / quote_usd.get('market_cap') if quote_usd.get('market_cap') else 0
                 }
+            else:
+                print(f"Could not find {symbol_base} in CoinMarketCap data")
         return market_caps
     except CoinMarketCapAPIError as e:
         print(f"Could not fetch CoinMarketCap data: {e.error}")
@@ -69,6 +78,15 @@ def get_market_cap_data(cmc_client, symbols):
 
 
 def analyze_and_report(binance_data, market_cap_data):
+    from datetime import datetime
+
+    # 获取当前UTC时间
+    utc_time = datetime.utcnow()
+
+    # 格式化为YYYYMMDD_HHMM
+    timestamp_str = utc_time.strftime("%Y%m%d_%H%M")
+
+    OUTPUT_DIR = OUTPUT_DIR_PREFIX + timestamp_str
     """Analyzes the data and generates a report."""
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
@@ -102,21 +120,35 @@ def analyze_and_report(binance_data, market_cap_data):
         print("No data with market cap to analyze.")
         return
         
-    top_third_index = int(len(full_df) / 3)
-    mid_third_index = int(2 * len(full_df) / 3)
-
-    top_group = full_df.iloc[:top_third_index]
-    mid_group = full_df.iloc[top_third_index:mid_third_index]
-    low_group = full_df.iloc[mid_third_index:]
-
-    groups = {'top': top_group, 'mid': mid_group, 'low': low_group}
+    groups = {}
+    if GROUPING_METHOD == 'terciles':
+        top_third_index = int(len(full_df) / 3)
+        mid_third_index = int(2 * len(full_df) / 3)
+        groups['top'] = full_df.iloc[:top_third_index]
+        groups['mid'] = full_df.iloc[top_third_index:mid_third_index]
+        groups['low'] = full_df.iloc[mid_third_index:]
+    elif GROUPING_METHOD == 'thresholds':
+        groups['low'] = full_df[full_df['unlocked_mkt_cap'] < LOW_CAP_THRESHOLD]
+        groups['mid'] = full_df[(full_df['unlocked_mkt_cap'] >= LOW_CAP_THRESHOLD) & (full_df['unlocked_mkt_cap'] < MID_CAP_THRESHOLD)]
+        groups['top'] = full_df[full_df['unlocked_mkt_cap'] >= MID_CAP_THRESHOLD]
+    elif GROUPING_METHOD == 'kmeans':
+        kmeans = KMeans(n_clusters=3, random_state=0, n_init=10)
+        full_df['cluster'] = kmeans.fit_predict(full_df[['unlocked_mkt_cap']])
+        
+        # Identify clusters as low, mid, top based on the mean market cap
+        cluster_means = full_df.groupby('cluster')['unlocked_mkt_cap'].mean().sort_values()
+        low_cluster, mid_cluster, top_cluster = cluster_means.index
+        
+        groups['low'] = full_df[full_df['cluster'] == low_cluster]
+        groups['mid'] = full_df[full_df['cluster'] == mid_cluster]
+        groups['top'] = full_df[full_df['cluster'] == top_cluster]
 
     # --- Generate Report ---
     report_parts = ["# Cryptocurrency Analysis Report\n\n"]
 
     # Market Cap Distribution
     plt.figure(figsize=(10, 6))
-    full_df['unlocked_mkt_cap'].log10().hist(bins=50)
+    np.log10(full_df['unlocked_mkt_cap']).hist(bins=50)
     plt.title('Log of Unlocked Market Cap Distribution')
     plt.xlabel('Log(Unlocked Market Cap)')
     plt.ylabel('Frequency')
@@ -165,7 +197,9 @@ if __name__ == "__main__":
     # 1. Get all USDT pairs from Binance
     print("Fetching USDT pairs from Binance...")
     usdt_pairs = get_usdt_pairs(binance_client)
+    usdt_pairs = usdt_pairs[:20]
     print(f"Found {len(usdt_pairs)} USDT pairs.")
+    
 
     # 2. Get daily data for each pair
     print(f"Fetching last {N_DAYS} day(s) of data for each pair...")
@@ -176,6 +210,7 @@ if __name__ == "__main__":
         if daily_data is not None:
             all_daily_data[symbol] = daily_data
     
+    print(f"{len(all_daily_data)} symbols have trade data...")
     # 3. Get market cap data
     print("Fetching market cap data from CoinMarketCap...")
     market_caps = get_market_cap_data(cmc_client, list(all_daily_data.keys()))
