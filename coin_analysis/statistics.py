@@ -61,6 +61,15 @@ def generate_comparative_descriptive_statistics_table(groups, binance_data, mark
 def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
     """Generates the risk-return analysis report for a single group."""
     report_parts = ["### Risk and Return Analysis\n\n"]
+    report_parts.append("""
+*   **Historical Volatility:** The standard deviation of daily returns, annualized. A measure of how much the price fluctuates.
+*   **Beta (vs. BTC):** A measure of a coin's volatility in relation to Bitcoin.
+*   **VaR (Value at Risk) (95%):** The maximum expected loss on a given day, with 95% confidence. For example, a VaR of -0.05 means there is a 5% chance of losing at least 5% in a day.
+*   **CVaR (Conditional VaR) (95%):** The expected loss on a given day, *given* that the loss is greater than the VaR. It's a measure of "how bad can things get?".
+*   **Skewness:** A measure of the asymmetry of the return distribution. Positive skew suggests a greater chance of large positive returns, while negative skew suggests a greater chance of large negative returns.
+*   **Kurtosis:** A measure of the "tailedness" of the return distribution. High kurtosis ("fat tails") means there is a higher probability of extreme price movements (both positive and negative).
+
+""")
 
 
     # Volatility
@@ -73,7 +82,7 @@ def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
                 all_volatilities.append(vol)
     
     if all_volatilities:
-        report_parts.append(f"- **Average Historical Volatility:** {np.mean(all_volatilities):.4f} (Higher is riskier)\n")
+        report_parts.append(f"- **Average Historical Volatility:** {np.mean(all_volatilities):.4f}\n")
     else:
         report_parts.append("- **Average Historical Volatility:** N/A\n")
 
@@ -81,7 +90,8 @@ def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
     betas = calculate_beta(group_df, binance_data)
     if betas:
         avg_beta = np.mean(list(betas.values()))
-        report_parts.append(f"- **Average Beta (vs. BTC):** {avg_beta:.2f} ({get_beta_interpretation(avg_beta)})\n")
+        report_parts.append(f"- **Average Beta (vs. BTC):** {avg_beta:.2f} ({get_beta_interpretation(avg_beta)})
+")
     else:
         report_parts.append("- **Average Beta (vs. BTC):** N/A\n")
 
@@ -97,12 +107,12 @@ def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
                 all_cvars.append(cvar)
     
     if all_vars:
-        report_parts.append(f"- **Average VaR (95%):** {np.mean(all_vars):.4f} (More negative is higher tail risk)\n")
+        report_parts.append(f"- **Average VaR (95%):** {np.mean(all_vars):.4f}\n")
     else:
         report_parts.append("- **Average VaR (95%):** N/A\n")
     
     if all_cvars:
-        report_parts.append(f"- **Average CVaR (95%):** {np.mean(all_cvars):.4f} (More negative is higher tail risk)\n")
+        report_parts.append(f"- **Average CVaR (95%):** {np.mean(all_cvars):.4f}\n")
     else:
         report_parts.append("- **Average CVaR (95%):** N/A\n")
 
@@ -123,13 +133,15 @@ def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
     
     if all_skews:
         avg_skew = np.mean(all_skews)
-        report_parts.append(f"- **Average Skewness:** {avg_skew:.2f} ({get_skewness_interpretation(avg_skew)})\n")
+        report_parts.append(f"- **Average Skewness:** {avg_skew:.2f} ({get_skewness_interpretation(avg_skew)})
+")
     else:
         report_parts.append("- **Average Skewness:** N/A\n")
     
     if all_kurtoses:
         avg_kurtosis = np.mean(all_kurtoses)
-        report_parts.append(f"- **Average Kurtosis:** {avg_kurtosis:.2f} ({get_kurtosis_interpretation(avg_kurtosis)})\n")
+        report_parts.append(f"- **Average Kurtosis:** {avg_kurtosis:.2f} ({get_kurtosis_interpretation(avg_kurtosis)})
+")
     else:
         report_parts.append("- **Average Kurtosis:** N/A\n")
 
