@@ -6,7 +6,7 @@ from coinmarketcapapi import CoinMarketCapAPI, CoinMarketCapAPIError
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from config import BINANCE_API_KEY, BINANCE_API_SECRET, COINMARKETCAP_API_KEY
-from data_fetcher import get_usdt_pairs, get_daily_data, get_market_cap_data
+from data_fetcher import get_usdt_pairs, get_daily_data, get_market_cap_data, get_all_daily_data_multithreaded
 from statistics import generate_group_statistics_report, generate_comparative_descriptive_statistics_table
 
 # --- Grouping Method ---
