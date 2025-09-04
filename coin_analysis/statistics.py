@@ -44,9 +44,10 @@ def generate_comparative_descriptive_statistics_table(groups, binance_data, mark
     
     return "".join(report_parts)
 
-def generate_risk_return_report(group_df, group_name, binance_data):
+def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
     """Generates the risk-return analysis report for a single group."""
     report_parts = ["### Risk and Return Analysis\n\n"]
+
 
     # Volatility
     # This needs to be calculated for each symbol and then averaged for the group
@@ -165,8 +166,7 @@ def generate_group_statistics_report(group_df, group_name, binance_data, market_
         report_parts.append(f"![Normalized Price Trends]({trend_plot_path})\n\n")
 
     # --- Risk and Return Analysis ---
-    report_parts.append(generate_risk_return_report(group_df, group_name,
-      binance_data))
+    report_parts.append(generate_risk_return_report(group_df, group_name, binance_data, output_dir))
 
     # --- Statistical Summary (of the latest day) ---
     latest_data = []
