@@ -1,9 +1,9 @@
-
 import os
 import pickle
 import pandas as pd
 from binance.client import Client
 from coinmarketcapapi import CoinMarketCapAPI, CoinMarketCapAPIError
+import concurrent.futures
 
 CACHE_DIR = "coin_analysis/fetched_data"
 os.makedirs(CACHE_DIR, exist_ok=True)
@@ -50,6 +50,23 @@ def get_daily_data(client, symbol, n_days=1):
     with open(cache_file, 'wb') as f:
         pickle.dump(df, f)
     return df
+
+def get_all_daily_data_multithreaded(client, symbols, n_days=1):
+    """
+    Gets the last n days of k-line data for multiple symbols in parallel, with caching.
+    """
+    all_daily_data = {}
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_symbol = {executor.submit(get_daily_data, client, symbol, n_days): symbol for symbol in symbols}
+        for future in concurrent.futures.as_completed(future_to_symbol):
+            symbol = future_to_symbol[future]
+            try:
+                data = future.result()
+                if data is not None:
+                    all_daily_data[symbol] = data
+            except Exception as exc:
+                print(f'{symbol} generated an exception: {exc}')
+    return all_daily_data
 
 def get_market_cap_data(cmc_client, symbols):
     """Gets market cap data from CoinMarketCap, with caching."""

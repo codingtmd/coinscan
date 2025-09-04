@@ -144,13 +144,7 @@ if __name__ == "__main__":
 
     # 2. Get daily data for each pair
     print(f"Fetching last {N_DAYS} day(s) of data for each pair...")
-    all_daily_data = {}
-    for i, symbol in enumerate(usdt_pairs):
-        print(f"Fetching {symbol} ({i+1}/{len(usdt_pairs)})...")
-        daily_data = get_daily_data(binance_client, symbol, N_DAYS)
-        if daily_data is not None:
-            all_daily_data[symbol] = daily_data
-    
+    all_daily_data = get_all_daily_data_multithreaded(binance_client, usdt_pairs, N_DAYS)
     print(f"{len(all_daily_data)} symbols have trade data...")
     # 3. Get market cap data
     print("Fetching market cap data from CoinMarketCap...")
