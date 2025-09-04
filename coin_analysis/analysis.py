@@ -24,109 +24,9 @@ OUTPUT_DIR_PREFIX = "analysis_output"
 
 # --- Functions ---
 
-def get_usdt_pairs(client):
-    """Gets all USDT trading pairs from Binance."""
-    exchange_info = client.get_exchange_info()
-    symbols = [s['symbol'] for s in exchange_info['symbols'] if s['symbol'].endswith('USDT')]
-    return symbols
+from data_fetcher import get_usdt_pairs, get_daily_data, get_market_cap_data
 
-def get_daily_data(client, symbol, n_days=1):
-    """Gets the last n days of k-line data for a symbol."""
-    klines = client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1DAY, f"{n_days} day ago UTC")
-    if not klines:
-        print(f"{symbol} Not have trade data")
-        return None
-    
-    df = pd.DataFrame(klines, columns=[
-        'open_time', 'open', 'high', 'low', 'close', 'volume', 'close_time',
-        'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume',
-        'taker_buy_quote_asset_volume', 'ignore'
-    ])
-    df['open_time'] = pd.to_datetime(df['open_time'], unit='ms')
-    for col in ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume']:
-        df[col] = pd.to_numeric(df[col])
-    return df
-
-def get_market_cap_data(cmc_client, symbols):
-    """Gets market cap data from CoinMarketCap."""
-    # CMC library expects symbols without USDT
-    base_symbols = [s.replace('USDT', '') for s in symbols]
-    
-    
-    try:
-        # Fetching quotes for the symbols
-        response = cmc_client.cryptocurrency_quotes_latest(symbol=','.join(base_symbols))
-        
-        market_caps = {}
-        for symbol_base in base_symbols:
-            if symbol_base in response.data:
-                print(f"Fetch {symbol_base} from CoinMarketCap data")
-                data = response.data[symbol_base]
-
-                if len(data) == 0:
-                    print(f"!!!{symbol_base} has no data")
-
-                    print(data)
-                    continue
-
-                data = data[0]
-                #print(data)
-                quote_usd = data['quote']['USD']
-                market_caps[symbol_base + 'USDT'] = {
-                    'unlocked_mkt_cap': quote_usd.get('market_cap'),
-                    'circulating_supply': data.get('circulating_supply'),
-                    'total_supply': data.get('total_supply'),
-                    'volume_24h': quote_usd.get('volume_24h'),
-                    'volume_market_cap_24h': quote_usd.get('volume_24h') / quote_usd.get('market_cap') if quote_usd.get('market_cap') else 0
-                }
-            else:
-                print(f"Could not find {symbol_base} in CoinMarketCap data")
-        return market_caps
-    except CoinMarketCapAPIError as e:
-        print(f"Could not fetch CoinMarketCap data: {e.error}")
-        return {}
-
-def analyze_price_trend_consistency(group_df, group_name, binance_data, OUTPUT_DIR):
-    """Analyzes the price trend consistency of a group of symbols."""
-    report_parts = ["### Price Trend Consistency\n\n"]
-    
-    group_symbols = group_df['symbol'].tolist()
-    group_daily_data = {sym: binance_data[sym] for sym in group_symbols if sym in binance_data}
-
-    if not group_daily_data:
-        report_parts.append("No historical data for this group.\n\n")
-        return "".join(report_parts)
-
-    # Normalize prices
-    normalized_prices = pd.DataFrame()
-    for symbol, df in group_daily_data.items():
-        if not df.empty:
-            normalized_prices[symbol] = df['close'] / df['close'].iloc[0]
-
-    # Plot normalized prices
-    plt.figure(figsize=(12, 7))
-    normalized_prices.plot(ax=plt.gca(), legend=False)
-    plt.title(f'{group_name.capitalize()} Group - Normalized Price Trends (7 days)')
-    plt.xlabel('Days')
-    plt.ylabel('Normalized Price')
-    trend_plot_path = os.path.join(OUTPUT_DIR, f'{group_name}_group_price_trends.png')
-    plt.savefig(trend_plot_path)
-    plt.close()
-    report_parts.append(f"![Normalized Price Trends]({trend_plot_path})\n\n")
-
-    # Calculate and display correlation of daily returns
-    daily_returns = pd.DataFrame()
-    for symbol, df in group_daily_data.items():
-        if not df.empty:
-            daily_returns[symbol] = df['close'].pct_change()
-    
-    if not daily_returns.empty:
-        returns_corr = daily_returns.corr()
-        report_parts.append("#### Daily Returns Correlation Matrix\n\n")
-        report_parts.append(returns_corr.to_markdown())
-        report_parts.append("\n\n")
-        
-    return "".join(report_parts)
+from statistics import generate_group_statistics_report
 
 def analyze_and_report(binance_data, market_cap_data):
     from datetime import datetime
@@ -217,35 +117,10 @@ def analyze_and_report(binance_data, market_cap_data):
             report_parts.append("No data in this group.\n\n")
             continue
 
-        # --- Price Trend Consistency Analysis ---
-        report_parts.append(analyze_price_trend_consistency(group_df, name, binance_data, OUTPUT_DIR))
+        report_parts.append(generate_group_statistics_report(group_df, name, binance_data, market_cap_data, OUTPUT_DIR))
 
         # Save group data
         group_df.to_csv(os.path.join(OUTPUT_DIR, f"{name}_group.csv"), index=False)
-        
-        # Statistical Summary (of the latest day)
-        latest_data = []
-        group_symbols = group_df['symbol'].tolist()
-        for symbol in group_symbols:
-            if symbol in binance_data and not binance_data[symbol].empty:
-                latest_day = binance_data[symbol].iloc[-1]
-                market_cap_info = market_cap_data.get(symbol, {})
-                row = {
-                    'symbol': symbol,
-                    'open': latest_day['open'],
-                    'high': latest_day['high'],
-                    'low': latest_day['low'],
-                    'close': latest_day['close'],
-                    'volume': latest_day['volume'],
-                    **market_cap_info
-                }
-                latest_data.append(row)
-        
-        if latest_data:
-            latest_df = pd.DataFrame(latest_data)
-            report_parts.append("### Statistical Summary (Latest Day)\n\n")
-            report_parts.append(latest_df[['open', 'high', 'low', 'close', 'volume', 'unlocked_mkt_cap', 'volume_24h']].describe().to_markdown())
-            report_parts.append("\n\n")
 
     report = "".join(report_parts)
     with open(os.path.join(OUTPUT_DIR, "report.md"), "w") as f:
