@@ -95,12 +95,17 @@ def get_market_cap_data(cmc_client, symbols):
 
                 data = data[0]
                 quote_usd = data['quote']['USD']
+                unlocked_mkt_cap = quote_usd.get('market_cap')
+                if unlocked_mkt_cap is None or unlocked_mkt_cap == 0:
+                    print(f"!!! {symbol_base} has 0 or None unlocked_mkt_cap. Skipping.")
+                    continue
+
                 market_caps[symbol_base + 'USDT'] = {
-                    'unlocked_mkt_cap': quote_usd.get('market_cap'),
+                    'unlocked_mkt_cap': unlocked_mkt_cap,
                     'circulating_supply': data.get('circulating_supply'),
                     'total_supply': data.get('total_supply'),
                     'volume_24h': quote_usd.get('volume_24h'),
-                    'volume_market_cap_24h': quote_usd.get('volume_24h') / quote_usd.get('market_cap') if quote_usd.get('market_cap') else 0
+                    'volume_market_cap_24h': quote_usd.get('volume_24h') / unlocked_mkt_cap if unlocked_mkt_cap else 0
                 }
             else:
                 print(f"Could not find {symbol_base} in CoinMarketCap data")
