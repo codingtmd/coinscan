@@ -12,6 +12,8 @@ from coin_analysis.factors import (
 
 def generate_cluster_analysis_report(groups: dict, binance_data: dict, output_dir: str, n_days: int):
     report_parts = ["\n## Clustering and Network Analysis\n"]
+    report_parts.append("This section provides a deeper look into the sub-structures within each market cap group, using clustering and network analysis to identify coins with similar behaviors.\n\n")
+
 
     for name, group_df in groups.items():
         if group_df.empty or len(group_df) < 3: # Need at least 3 samples for clustering
@@ -53,9 +55,18 @@ def generate_cluster_analysis_report(groups: dict, binance_data: dict, output_di
         plt.close()
 
         report_parts.append("#### K-Means Clustering\n")
+        report_parts.append("The scatter plot below visualizes the clusters of coins based on their momentum and volatility. Each point represents a coin, and the color represents its cluster.\n\n")
         report_parts.append(f"![Cluster Plot]({name}_cluster_plot.png)\n\n")
-        report_parts.append("Cluster Sizes:\n")
-        report_parts.append(feature_df.groupby('cluster').size().to_markdown())
+        
+        # Cluster Characteristics
+        cluster_summary = feature_df.groupby('cluster').agg({
+            'momentum': ['mean', 'std'],
+            'volatility': ['mean', 'std'],
+            'cluster': 'size'
+        }).rename(columns={'size': 'count'})
+        
+        report_parts.append("Cluster Characteristics:\n")
+        report_parts.append(cluster_summary.to_markdown())
         report_parts.append("\n\n")
 
         # --- Network Analysis ---
@@ -96,6 +107,7 @@ def generate_cluster_analysis_report(groups: dict, binance_data: dict, output_di
         plt.close()
 
         report_parts.append("#### Correlation Network Analysis\n")
+        report_parts.append("The network graph visualizes the correlation between coins in the group. An edge between two coins means they have a strong price correlation (Pearson > 0.7). The more connections a node has, the more central it is to the group's price movements.\n\n")
         report_parts.append(f"![Network Plot]({name}_network_plot.png)\n\n")
 
         degree_centrality = nx.degree_centrality(G)
@@ -105,5 +117,16 @@ def generate_cluster_analysis_report(groups: dict, binance_data: dict, output_di
         for node, centrality in central_nodes:
             report_parts.append(f"- {node}: {centrality:.4f}\n")
         report_parts.append("\n")
+
+        # --- Key Observations ---
+        report_parts.append("#### Key Observations\n")
+        if not feature_df.empty:
+            largest_cluster = feature_df.groupby('cluster').size().idxmax()
+            report_parts.append(f"- Cluster {largest_cluster} is the largest, suggesting a significant number of coins in this group share similar momentum and volatility characteristics.\n")
+        
+        if 'central_nodes' in locals() and central_nodes:
+            most_central_node = central_nodes[0][0]
+            report_parts.append(f"- **{most_central_node}** is the most central coin in this group's correlation network, suggesting its price movements are highly correlated with other coins in the group.\n")
+
 
     return "".join(report_parts)
