@@ -47,7 +47,7 @@ def calculate_liquidity(group_df):
     
     if num_tokens > 0:
         stats['avg_volume'] = group_df['volume_24h'].mean()
-        turnover_rate = group_df['volume_24h'] / group_df['unlocked_mkt_cap']
-        stats['avg_turnover_rate'] = turnover_rate.mean()
+        #turnover_rate = group_df['volume_24h'] / group_df['unlocked_mkt_cap']
+        stats['avg_turnover_rate'] = group_df['volume_market_cap_24h'].mean()
         
     return stats

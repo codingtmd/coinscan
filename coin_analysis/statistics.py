@@ -148,17 +148,9 @@ def generate_group_statistics_report(group_df, group_name, binance_data, market_
         plt.close()
         report_parts.append(f"![Normalized Price Trends]({trend_plot_path})\n\n")
 
-        # Calculate and display correlation of daily returns
-        daily_returns = pd.DataFrame()
-        for symbol, df in group_daily_data.items():
-            if not df.empty:
-                daily_returns[symbol] = df['close'].pct_change()
-        
-        if not daily_returns.empty:
-            returns_corr = daily_returns.corr()
-            report_parts.append("#### Daily Returns Correlation Matrix\n\n")
-            report_parts.append(returns_corr.to_markdown())
-            report_parts.append("\n\n")
+    # --- Risk and Return Analysis ---
+    report_parts.append(generate_risk_return_report(group_df, group_name,
+      binance_data))
 
     # --- Statistical Summary (of the latest day) ---
     latest_data = []
@@ -181,7 +173,7 @@ def generate_group_statistics_report(group_df, group_name, binance_data, market_
     if latest_data:
         latest_df = pd.DataFrame(latest_data)
         report_parts.append("### Statistical Summary (Latest Day)\n\n")
-        report_parts.append(latest_df[['open', 'high', 'low', 'close', 'volume', 'unlocked_mkt_cap', 'volume_24h']].describe().to_markdown())
+        report_parts.append(latest_df[['open', 'high', 'low', 'close', 'volume', 'unlocked_mkt_cap', 'volume_24h', 'volume_market_cap_24h']].describe().to_markdown())
         report_parts.append("\n\n")
         
     return "".join(report_parts)

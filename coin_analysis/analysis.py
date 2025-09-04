@@ -34,7 +34,7 @@ def analyze_and_report(binance_data, market_cap_data):
     # 格式化为YYYYMMDD_HHMM
     timestamp_str = utc_time.strftime("%Y%m%d_%H%M")
 
-    OUTPUT_DIR = OUTPUT_DIR_PREFIX + timestamp_str
+    OUTPUT_DIR =  os.path.join(OUTPUT_DIR_PREFIX , timestamp_str)
     """Analyzes the data and generates a report."""
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)

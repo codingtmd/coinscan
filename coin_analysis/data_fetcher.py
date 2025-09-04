@@ -28,11 +28,11 @@ def get_daily_data(client, symbol, n_days=1):
     """Gets the last n days of k-line data for a symbol, with caching."""
     cache_file = os.path.join(CACHE_DIR, f"daily_{symbol}_{n_days}d.pkl")
     if os.path.exists(cache_file):
-        #print(f"Loading daily data for {symbol} from cache...")
+        print(f"Loading daily data for {symbol} from cache...")
         with open(cache_file, 'rb') as f:
             return pickle.load(f)
 
-    print(f"Fetching daily data for {symbol} from Binance...")
+    print(f"{symbol} not exist in {cache_file}. Fetching daily data for {symbol} from Binance...")
     klines = client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1DAY, f"{n_days} day ago UTC")
     if not klines:
         print(f"{symbol} Not have trade data")
@@ -105,7 +105,7 @@ def get_market_cap_data(cmc_client, symbols):
                     'circulating_supply': data.get('circulating_supply'),
                     'total_supply': data.get('total_supply'),
                     'volume_24h': quote_usd.get('volume_24h'),
-                    'volume_market_cap_24h': quote_usd.get('volume_24h') / unlocked_mkt_cap if unlocked_mkt_cap else 0
+                    'volume_market_cap_24h': quote_usd.get('volume_24h') / unlocked_mkt_cap
                 }
             else:
                 print(f"Could not find {symbol_base} in CoinMarketCap data")
