@@ -158,4 +158,4 @@ if __name__ == "__main__":
 
     # 4. & 5. Analyze and generate report
     print("Analyzing data and generating report...")
-    analyze_and_report(all_daily_data, market_cap_data)
+    analyze_and_report(all_daily_data, market_caps)
