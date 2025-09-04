@@ -10,7 +10,7 @@ from coin_analysis.factors import (
     calculate_volatility_factor
 )
 
-def generate_cluster_analysis_report(groups: dict, binance_data: dict, output_dir: str):
+def generate_cluster_analysis_report(groups: dict, binance_data: dict, output_dir: str, n_days: int):
     report_parts = ["\n## Clustering and Network Analysis\n"]
 
     for name, group_df in groups.items():
@@ -18,7 +18,6 @@ def generate_cluster_analysis_report(groups: dict, binance_data: dict, output_di
             continue
         
         report_parts.append(f"### {name.capitalize()} Group\n")
-        print(f"Processing group: {name}, number of coins: {len(group_df)}")
 
         # --- Feature Engineering ---
         feature_data = []
@@ -27,20 +26,14 @@ def generate_cluster_analysis_report(groups: dict, binance_data: dict, output_di
                 daily_data = binance_data[symbol]
                 feature_data.append({
                     'symbol': symbol,
-                    'momentum': calculate_momentum_factor(daily_data),
-                    'volatility': calculate_volatility_factor(daily_data),
+                    'momentum': calculate_momentum_factor(daily_data, n_days=n_days),
+                    'volatility': calculate_volatility_factor(daily_data, n_days=n_days),
                 })
         
-        feature_df = pd.DataFrame(feature_data).set_index('symbol')
-        print(f"Feature dataframe before dropping NaNs for group {name}:\n{feature_df}")
-        
-        feature_df.dropna(inplace=True)
-        print(f"Feature dataframe after dropping NaNs for group {name}:\n{feature_df}")
-
+        feature_df = pd.DataFrame(feature_data).set_index('symbol').dropna()
 
         if len(feature_df) < 3:
             report_parts.append("Not enough data for clustering.\n")
-            print(f"Not enough data for clustering in group {name}")
             continue
 
         # --- K-Means Clustering ---

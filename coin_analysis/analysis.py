@@ -124,7 +124,7 @@ def analyze_and_report(binance_data, market_cap_data):
         group_df.to_csv(os.path.join(OUTPUT_DIR, f"{name}_group.csv"), index=False)
 
     report_parts.append(generate_factor_validation_report(groups, binance_data, market_cap_data, N_DAYS))
-    report_parts.append(generate_cluster_analysis_report(groups, binance_data, OUTPUT_DIR))
+    report_parts.append(generate_cluster_analysis_report(groups, binance_data, OUTPUT_DIR, N_DAYS))
 
     report = "".join(report_parts)
     with open(os.path.join(OUTPUT_DIR, "report.md"), "w") as f:
