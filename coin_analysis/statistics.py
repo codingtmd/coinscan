@@ -96,13 +96,17 @@ def generate_risk_return_report(group_df, group_name, binance_data):
     # Return Distribution (Skewness and Kurtosis)
     all_skews = []
     all_kurtoses = []
+    all_returns = [] # Collect all returns for plotting
     for symbol in group_symbols:
         if symbol in binance_data and not binance_data[symbol].empty:
-            skewness, kurtosis_val = calculate_return_distribution_metrics(binance_data[symbol])
-            if skewness is not None:
-                all_skews.append(skewness)
-            if kurtosis_val is not None:
-                all_kurtoses.append(kurtosis_val)
+            returns = binance_data[symbol]['close'].pct_change().dropna()
+            if not returns.empty:
+                all_returns.extend(returns.tolist())
+                skewness, kurtosis_val = calculate_return_distribution_metrics(binance_data[symbol])
+                if skewness is not None:
+                    all_skews.append(skewness)
+                if kurtosis_val is not None:
+                    all_kurtoses.append(kurtosis_val)
     
     if all_skews:
         report_parts.append(f"- **Average Skewness:** {np.mean(all_skews):.2f}\n")
@@ -113,6 +117,18 @@ def generate_risk_return_report(group_df, group_name, binance_data):
         report_parts.append(f"- **Average Kurtosis:** {np.mean(all_kurtoses):.2f}\n")
     else:
         report_parts.append("- **Average Kurtosis:** N/A\n")
+
+    # Plot Return Distribution
+    if all_returns:
+        plt.figure(figsize=(10, 6))
+        plt.hist(all_returns, bins=50, density=True, alpha=0.7, color='skyblue')
+        plt.title(f'{group_name.capitalize()} Group - Daily Return Distribution')
+        plt.xlabel('Daily Return')
+        plt.ylabel('Density')
+        return_dist_path = os.path.join(output_dir, f'{group_name}_return_distribution.png')
+        plt.savefig(return_dist_path)
+        plt.close()
+        report_parts.append(f"![Daily Return Distribution]({return_dist_path})\n\n")
 
     return "".join(report_parts)
 
