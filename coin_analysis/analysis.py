@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from config import BINANCE_API_KEY, BINANCE_API_SECRET, COINMARKETCAP_API_KEY
 from data_fetcher import get_usdt_pairs, get_daily_data, get_market_cap_data, get_all_daily_data_multithreaded
-from statistics import generate_group_statistics_report, generate_comparative_descriptive_statistics_table
+from reporting import generate_group_statistics_report, generate_comparative_descriptive_statistics_table
 from factor_validation import generate_factor_validation_report
 from cluster_analysis import generate_cluster_analysis_report
 from factor_visuals import generate_factor_visuals_report
