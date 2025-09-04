@@ -6,6 +6,7 @@ from binance.client import Client
 from coinmarketcapapi import CoinMarketCapAPI, CoinMarketCapAPIError
 
 CACHE_DIR = "coin_analysis/fetched_data"
+os.makedirs(CACHE_DIR, exist_ok=True)
 
 def get_usdt_pairs(client):
     """Gets all USDT trading pairs from Binance, with caching."""
