@@ -4,51 +4,49 @@ import numpy as np
 import matplotlib.pyplot as plt
 from descriptive_statistics import calculate_basic_stats, calculate_return_and_risk, calculate_liquidity
 
-def generate_descriptive_statistics_report(group_df, group_name, binance_data, market_cap_data):
-    """Generates the descriptive statistics report for a single group."""
+def generate_comparative_descriptive_statistics_table(groups, binance_data, market_cap_data):
+    """Generates a comparative table of descriptive statistics for all groups."""
     
-    report_parts = ["### Descriptive Statistics\n\n"]
-    
-    # --- Basic Statistics ---
-    report_parts.append("#### Basic Statistics\n\n")
-    basic_stats = calculate_basic_stats(group_df)
-    report_parts.append(f"- **Number of Tokens:** {basic_stats.get('num_tokens', 0)}\n")
-    if basic_stats:
-        report_parts.append("- **Unlocked Market Cap (USD):**\n")
-        report_parts.append(f"  - Mean: ${basic_stats.get('mkt_cap_mean', 0):,.2f}\n")
-        report_parts.append(f"  - Median: ${basic_stats.get('mkt_cap_median', 0):,.2f}\n")
-        report_parts.append(f"  - Min: ${basic_stats.get('mkt_cap_min', 0):,.2f}\n")
-        report_parts.append(f"  - Max: ${basic_stats.get('mkt_cap_max', 0):,.2f}\n")
-        report_parts.append("- **Circulating Supply Ratio:**\n")
-        report_parts.append(f"  - Mean: {basic_stats.get('circ_supply_ratio_mean', 0):.2%}\n")
-        report_parts.append(f"  - Median: {basic_stats.get('circ_supply_ratio_median', 0):.2%}\n")
-
-    # --- Return and Risk ---
-    report_parts.append("\n#### Return and Risk (7-day)\n\n")
-    return_risk_stats = calculate_return_and_risk(group_df, binance_data)
-    if return_risk_stats:
-        report_parts.append(f"- **Average Daily Return:** {return_risk_stats.get('mean_return', 0):.4%}\n")
-        report_parts.append(f"- **Volatility (Std. Dev. of Daily Return):** {return_risk_stats.get('std_dev', 0):.4%}\n")
-        report_parts.append(f"- **Annualized Sharpe Ratio:** {return_risk_stats.get('sharpe_ratio', 0):.2f}\n")
-
-    # --- Liquidity ---
-    report_parts.append("\n#### Liquidity\n\n")
-    liquidity_stats = calculate_liquidity(group_df)
-    if liquidity_stats:
-        report_parts.append(f"- **Average 24h Trading Volume:** ${liquidity_stats.get('avg_volume', 0):,.2f}\n")
-        report_parts.append(f"- **Average Turnover Rate:** {liquidity_stats.get('avg_turnover_rate', 0):.2%}\n")
+    stats_list = []
+    for name, group_df in groups.items():
+        if group_df.empty:
+            continue
+            
+        basic_stats = calculate_basic_stats(group_df)
+        return_risk_stats = calculate_return_and_risk(group_df, binance_data)
+        liquidity_stats = calculate_liquidity(group_df)
         
-    report_parts.append("\n*Note: Token age and category proportions are not available with the current data sources.*\n")
-
+        stats = {
+            'Group': name.capitalize(),
+            'Number of Tokens': basic_stats.get('num_tokens', 0),
+            'Mean Market Cap (USD)': f"${basic_stats.get('mkt_cap_mean', 0):,.2f}",
+            'Median Market Cap (USD)': f"${basic_stats.get('mkt_cap_median', 0):,.2f}",
+            'Mean Circ. Supply Ratio': f"{basic_stats.get('circ_supply_ratio_mean', 0):.2%}",
+            'Median Circ. Supply Ratio': f"{basic_stats.get('circ_supply_ratio_median', 0):.2%}",
+            'Avg. Daily Return': f"{return_risk_stats.get('mean_return', 0):.4%}",
+            'Volatility': f"{return_risk_stats.get('std_dev', 0):.4%}",
+            'Sharpe Ratio (Annualized)': f"{return_risk_stats.get('sharpe_ratio', 0):.2f}",
+            'Avg. 24h Volume': f"${liquidity_stats.get('avg_volume', 0):,.2f}",
+            'Avg. Turnover Rate': f"{liquidity_stats.get('avg_turnover_rate', 0):.2%}",
+        }
+        stats_list.append(stats)
+        
+    if not stats_list:
+        return ""
+        
+    df = pd.DataFrame(stats_list)
+    df = df.set_index('Group').T
+    
+    report_parts = ["### Comparative Descriptive Statistics\n\n"]
+    report_parts.append(df.to_markdown())
+    report_parts.append("\n\n*Note: Token age and category proportions are not available with the current data sources.*\n")
+    
     return "".join(report_parts)
 
 def generate_group_statistics_report(group_df, group_name, binance_data, market_cap_data, output_dir):
     """Generates the statistical analysis report for a single group."""
     
     report_parts = []
-
-    # --- Descriptive Statistics ---
-    report_parts.append(generate_descriptive_statistics_report(group_df, group_name, binance_data, market_cap_data))
 
     # --- Price Trend Consistency Analysis ---
     report_parts.append("### Price Trend Consistency\n\n")

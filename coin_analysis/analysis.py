@@ -1,4 +1,3 @@
-
 import os
 import numpy as np 
 import pandas as pd
@@ -7,6 +6,8 @@ from coinmarketcapapi import CoinMarketCapAPI, CoinMarketCapAPIError
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from config import BINANCE_API_KEY, BINANCE_API_SECRET, COINMARKETCAP_API_KEY
+from data_fetcher import get_usdt_pairs, get_daily_data, get_market_cap_data
+from statistics import generate_group_statistics_report, generate_comparative_descriptive_statistics_table
 
 # --- Grouping Method ---
 # Choose the grouping method: 'terciles', 'thresholds', or 'kmeans'
@@ -23,10 +24,6 @@ N_DAYS = 5
 OUTPUT_DIR_PREFIX = "analysis_output"
 
 # --- Functions ---
-
-from data_fetcher import get_usdt_pairs, get_daily_data, get_market_cap_data
-
-from statistics import generate_group_statistics_report
 
 def analyze_and_report(binance_data, market_cap_data):
     from datetime import datetime
@@ -109,6 +106,8 @@ def analyze_and_report(binance_data, market_cap_data):
     report_parts.append("## Market Cap Distribution\n\n")
     report_parts.append(f"![Market Cap Distribution]({dist_path})\n\n")
 
+    # --- Comparative Descriptive Statistics ---
+    report_parts.append(generate_comparative_descriptive_statistics_table(groups, binance_data, market_cap_data))
 
     for name, group_df in groups.items():
         report_parts.append(f"## {name.capitalize()} Group Analysis\n\n")
@@ -159,5 +158,4 @@ if __name__ == "__main__":
 
     # 4. & 5. Analyze and generate report
     print("Analyzing data and generating report...")
-    analyze_and_report(all_daily_data, market_caps)
-
+    analyze_and_report(all_daily_data, market_cap_data)
