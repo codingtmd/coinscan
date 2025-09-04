@@ -4,3 +4,5 @@ matplotlib
 python-coinmarketcap
 tabulate
 scikit-learn
+statsmodels
+scipy

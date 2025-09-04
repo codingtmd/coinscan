@@ -146,6 +146,14 @@ if __name__ == "__main__":
     print(f"Fetching last {N_DAYS} day(s) of data for each pair...")
     all_daily_data = get_all_daily_data_multithreaded(binance_client, usdt_pairs, N_DAYS)
     print(f"{len(all_daily_data)} symbols have trade data...")
+
+    # Fetch Bitcoin data for market index
+    print("Fetching Bitcoin data for market index...")
+    btc_data = get_daily_data(binance_client, 'BTCUSDT', N_DAYS)
+    if btc_data is not None:
+        all_daily_data['BTCUSDT'] = btc_data
+    else:
+        print("Warning: Could not fetch BTCUSDT data. Beta calculation might be affected.")
     # 3. Get market cap data
     print("Fetching market cap data from CoinMarketCap...")
     market_caps = get_market_cap_data(cmc_client, list(all_daily_data.keys()))

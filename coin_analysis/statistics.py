@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from descriptive_statistics import calculate_basic_stats, calculate_return_and_risk, calculate_liquidity
+from risk_return_analysis import calculate_historical_volatility, calculate_beta, calculate_tail_risk, calculate_return_distribution_metrics
 
 def generate_comparative_descriptive_statistics_table(groups, binance_data, market_cap_data):
     """Generates a comparative table of descriptive statistics for all groups."""
@@ -43,11 +44,84 @@ def generate_comparative_descriptive_statistics_table(groups, binance_data, mark
     
     return "".join(report_parts)
 
+def generate_risk_return_report(group_df, group_name, binance_data):
+    """Generates the risk-return analysis report for a single group."""
+    report_parts = ["### Risk and Return Analysis\n\n"]
+
+    # Volatility
+    # This needs to be calculated for each symbol and then averaged for the group
+    group_symbols = group_df['symbol'].tolist()
+    all_volatilities = []
+    for symbol in group_symbols:
+        if symbol in binance_data and not binance_data[symbol].empty:
+            vol = calculate_historical_volatility(binance_data[symbol])
+            if vol is not None:
+                all_volatilities.append(vol)
+    
+    if all_volatilities:
+        report_parts.append(f"- **Average Historical Volatility:** {np.mean(all_volatilities):.4f}\n")
+    else:
+        report_parts.append("- **Average Historical Volatility:** N/A\n")
+
+    # Beta
+    betas = calculate_beta(group_df, binance_data)
+    if betas:
+        avg_beta = np.mean(list(betas.values()))
+        report_parts.append(f"- **Average Beta (vs. BTC):** {avg_beta:.2f}\n")
+    else:
+        report_parts.append("- **Average Beta (vs. BTC):** N/A\n")
+
+    # Tail Risk (VaR and CVaR)
+    # This needs to be calculated for each symbol and then averaged or aggregated
+    all_vars = []
+    all_cvars = []
+    for symbol in group_symbols:
+        if symbol in binance_data and not binance_data[symbol].empty:
+            var, cvar = calculate_tail_risk(binance_data[symbol])
+            if var is not None:
+                all_vars.append(var)
+            if cvar is not None:
+                all_cvars.append(cvar)
+    
+    if all_vars:
+        report_parts.append(f"- **Average VaR (95%):** {np.mean(all_vars):.4f}\n")
+    else:
+        report_parts.append("- **Average VaR (95%):** N/A\n")
+    
+    if all_cvars:
+        report_parts.append(f"- **Average CVaR (95%):** {np.mean(all_cvars):.4f}\n")
+    else:
+        report_parts.append("- **Average CVaR (95%):** N/A\n")
+
+    # Return Distribution (Skewness and Kurtosis)
+    all_skews = []
+    all_kurtoses = []
+    for symbol in group_symbols:
+        if symbol in binance_data and not binance_data[symbol].empty:
+            skewness, kurtosis_val = calculate_return_distribution_metrics(binance_data[symbol])
+            if skewness is not None:
+                all_skews.append(skewness)
+            if kurtosis_val is not None:
+                all_kurtoses.append(kurtosis_val)
+    
+    if all_skews:
+        report_parts.append(f"- **Average Skewness:** {np.mean(all_skews):.2f}\n")
+    else:
+        report_parts.append("- **Average Skewness:** N/A\n")
+    
+    if all_kurtoses:
+        report_parts.append(f"- **Average Kurtosis:** {np.mean(all_kurtoses):.2f}\n")
+    else:
+        report_parts.append("- **Average Kurtosis:** N/A\n")
+
+    return "".join(report_parts)
+
+
 def generate_group_statistics_report(group_df, group_name, binance_data, market_cap_data, output_dir):
     """Generates the statistical analysis report for a single group."""
     
     report_parts = []
-
+    
     # --- Price Trend Consistency Analysis ---
     report_parts.append("### Price Trend Consistency\n\n")
     
