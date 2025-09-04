@@ -9,6 +9,7 @@ from config import BINANCE_API_KEY, BINANCE_API_SECRET, COINMARKETCAP_API_KEY
 from data_fetcher import get_usdt_pairs, get_daily_data, get_market_cap_data, get_all_daily_data_multithreaded
 from statistics import generate_group_statistics_report, generate_comparative_descriptive_statistics_table
 from factor_validation import generate_factor_validation_report
+from cluster_analysis import generate_cluster_analysis_report
 
 # --- Grouping Method ---
 # Choose the grouping method: 'terciles', 'thresholds', or 'kmeans'
@@ -123,6 +124,7 @@ def analyze_and_report(binance_data, market_cap_data):
         group_df.to_csv(os.path.join(OUTPUT_DIR, f"{name}_group.csv"), index=False)
 
     report_parts.append(generate_factor_validation_report(groups, binance_data, market_cap_data, N_DAYS))
+    report_parts.append(generate_cluster_analysis_report(groups, binance_data, OUTPUT_DIR))
 
     report = "".join(report_parts)
     with open(os.path.join(OUTPUT_DIR, "report.md"), "w") as f:
@@ -164,3 +166,4 @@ if __name__ == "__main__":
     # 4. & 5. Analyze and generate report
     print("Analyzing data and generating report...")
     analyze_and_report(all_daily_data, market_caps)
+
