@@ -67,7 +67,7 @@ def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
 *   **VaR (Value at Risk) (95%):** The maximum expected loss on a given day, with 95% confidence. For example, a VaR of -0.05 means there is a 5% chance of losing at least 5% in a day.
 *   **CVaR (Conditional VaR) (95%):** The expected loss on a given day, *given* that the loss is greater than the VaR. It's a measure of "how bad can things get?".
 *   **Skewness:** A measure of the asymmetry of the return distribution. Positive skew suggests a greater chance of large positive returns, while negative skew suggests a greater chance of large negative returns.
-*   **Kurtosis:** A measure of the "tailedness" of the return distribution. High kurtosis ("fat tails") means there is a higher probability of extreme price movements (both positive and negative).
+*   **Kurtosis:** A measure of the "tailedness" of the return distribution. High kurtosis ("fat tails") means there is a higher probability of extreme price movements (both positive and negative).\n
 
 """)
 
@@ -90,8 +90,7 @@ def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
     betas = calculate_beta(group_df, binance_data)
     if betas:
         avg_beta = np.mean(list(betas.values()))
-        report_parts.append(f"- **Average Beta (vs. BTC):** {avg_beta:.2f} ({get_beta_interpretation(avg_beta)})
-")
+        report_parts.append(f"- **Average Beta (vs. BTC):** {avg_beta:.2f} ({get_beta_interpretation(avg_beta)})\n")
     else:
         report_parts.append("- **Average Beta (vs. BTC):** N/A\n")
 
@@ -133,15 +132,13 @@ def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
     
     if all_skews:
         avg_skew = np.mean(all_skews)
-        report_parts.append(f"- **Average Skewness:** {avg_skew:.2f} ({get_skewness_interpretation(avg_skew)})
-")
+        report_parts.append(f"- **Average Skewness:** {avg_skew:.2f} ({get_skewness_interpretation(avg_skew)})\n")
     else:
         report_parts.append("- **Average Skewness:** N/A\n")
     
     if all_kurtoses:
         avg_kurtosis = np.mean(all_kurtoses)
-        report_parts.append(f"- **Average Kurtosis:** {avg_kurtosis:.2f} ({get_kurtosis_interpretation(avg_kurtosis)})
-")
+        report_parts.append(f"- **Average Kurtosis:** {avg_kurtosis:.2f} ({get_kurtosis_interpretation(avg_kurtosis)})\n")
     else:
         report_parts.append("- **Average Kurtosis:** N/A\n")
 
