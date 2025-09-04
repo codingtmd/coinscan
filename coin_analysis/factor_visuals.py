@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from coin_analysis.factors import (
+from factors import (
     calculate_momentum_factor,
     calculate_liquidity_factor,
     calculate_value_factor,

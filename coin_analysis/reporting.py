@@ -152,7 +152,7 @@ def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
         return_dist_path = os.path.join(output_dir, f'{group_name}_return_distribution.png')
         plt.savefig(return_dist_path)
         plt.close()
-        report_parts.append(f"![Daily Return Distribution]({group_name}_return_distribution.png)\n\n")
+        report_parts.append(f"\n![Daily Return Distribution]({group_name}_return_distribution.png)\n\n")
 
     return "".join(report_parts)
 

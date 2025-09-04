@@ -5,7 +5,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-from coin_analysis.factors import (
+from factors import (
     calculate_momentum_factor,
     calculate_volatility_factor
 )
