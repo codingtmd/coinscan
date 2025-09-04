@@ -10,6 +10,7 @@ from data_fetcher import get_usdt_pairs, get_daily_data, get_market_cap_data, ge
 from statistics import generate_group_statistics_report, generate_comparative_descriptive_statistics_table
 from factor_validation import generate_factor_validation_report
 from cluster_analysis import generate_cluster_analysis_report
+from factor_visuals import generate_factor_visuals_report
 
 # --- Grouping Method ---
 # Choose the grouping method: 'terciles', 'thresholds', or 'kmeans'
@@ -125,6 +126,7 @@ def analyze_and_report(binance_data, market_cap_data):
 
     report_parts.append(generate_factor_validation_report(groups, binance_data, market_cap_data, N_DAYS))
     report_parts.append(generate_cluster_analysis_report(groups, binance_data, OUTPUT_DIR, N_DAYS))
+    report_parts.append(generate_factor_visuals_report(groups, binance_data, market_cap_data, OUTPUT_DIR, N_DAYS))
 
     report = "".join(report_parts)
     with open(os.path.join(OUTPUT_DIR, "report.md"), "w") as f:
