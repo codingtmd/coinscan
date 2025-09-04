@@ -1,6 +1,6 @@
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
-from coin_analysis.factors import (
+from factors import (
     calculate_momentum_factor,
     calculate_liquidity_factor,
     calculate_value_factor,
@@ -62,16 +62,14 @@ def validate_factors_for_group(group_df: pd.DataFrame, binance_data: dict, marke
 
     report_parts = ["### Factor Effectiveness Testing\n\n"]
     report_parts.append("#### Information Coefficient (IC) Analysis\n\n")
-    report_parts.append("*IC (Information Coefficient) measures the correlation between a factor and subsequent returns. A higher absolute IC value indicates a stronger predictive power.*
+    report_parts.append("""*IC (Information Coefficient) measures the correlation between a factor and subsequent returns. A higher absolute IC value indicates a stronger predictive power.*
 *   **> 0.05:** Strong signal
 *   **0.02 - 0.05:** Normal signal
-*   **0 - 0.02:** Weak signal
-
-")
+*   **0 - 0.02:** Weak signal\n\n""")
     report_parts.append("**P-value:** The P-value indicates the statistical significance of the IC. A low P-value (typically < 0.05) suggests that the observed correlation is unlikely to be due to random chance.\n\n")
-    report_parts.append("**Pearson vs. Spearman Correlation:**
+    report_parts.append("""**Pearson vs. Spearman Correlation:**
 *   **Pearson IC:** Measures the linear relationship between the factor and returns. It's sensitive to outliers.
-*   **Spearman IC:** Measures the monotonic relationship (whether the factor and returns move in the same direction, but not necessarily at a constant rate). It is less sensitive to outliers.\n\n")
+*   **Spearman IC:** Measures the monotonic relationship (whether the factor and returns move in the same direction, but not necessarily at a constant rate). It is less sensitive to outliers.\n\n""")
 
 
     ic_results = []
