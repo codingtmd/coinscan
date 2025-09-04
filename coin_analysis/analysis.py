@@ -104,7 +104,7 @@ def analyze_and_report(binance_data, market_cap_data):
     plt.savefig(dist_path)
     plt.close()
     report_parts.append("## Market Cap Distribution\n\n")
-    report_parts.append(f"![Market Cap Distribution]({dist_path})\n\n")
+    report_parts.append(f"![Market Cap Distribution](market_cap_distribution.png)\n\n")
 
     # --- Comparative Descriptive Statistics ---
     report_parts.append(generate_comparative_descriptive_statistics_table(groups, binance_data, market_cap_data))

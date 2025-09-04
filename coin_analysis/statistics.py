@@ -129,7 +129,7 @@ def generate_risk_return_report(group_df, group_name, binance_data, output_dir):
         return_dist_path = os.path.join(output_dir, f'{group_name}_return_distribution.png')
         plt.savefig(return_dist_path)
         plt.close()
-        report_parts.append(f"![Daily Return Distribution]({return_dist_path})\n\n")
+        report_parts.append(f"![Daily Return Distribution]({group_name}_return_distribution.png)\n\n")
 
     return "".join(report_parts)
 
@@ -163,7 +163,7 @@ def generate_group_statistics_report(group_df, group_name, binance_data, market_
         trend_plot_path = os.path.join(output_dir, f'{group_name}_group_price_trends.png')
         plt.savefig(trend_plot_path)
         plt.close()
-        report_parts.append(f"![Normalized Price Trends]({trend_plot_path})\n\n")
+        report_parts.append(f"![Normalized Price Trends]({group_name}_group_price_trends.png)\n\n")
 
     # --- Risk and Return Analysis ---
     report_parts.append(generate_risk_return_report(group_df, group_name, binance_data, output_dir))
