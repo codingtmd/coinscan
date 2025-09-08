@@ -128,4 +128,3 @@
 - **风险**：小市值组数据噪音大，建议最小样本50+代币。
 - **工具**：Python（Pandas, Statsmodels, Scikit-learn），或R for advanced stats。
 
-如果你提供具体组数据或想针对某个因子细化代码，我可以帮你扩展！如果需要生成可视化图像，确认一下？

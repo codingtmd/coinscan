@@ -8,6 +8,8 @@ This project provides a robust framework for analyzing cryptocurrency market dat
 
 Our analysis is structured to provide deep insights into the behavior of different segments of the cryptocurrency market.
 
+Previous experiment report can be found: [20250904](./recorded_report/20250904_1954/report.md)
+
 #### 🎯 Goal
 
 To predict virtual currency prices for intraday trading, identify valuable feature factors, and gain a comprehensive understanding of the current virtual currency trading market through statistical analysis of Binance spot trading pairs.
