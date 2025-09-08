@@ -1,7 +1,5 @@
 # coinscan
 
-## 🚀 Cryptocurrency Market Analysis Project 🚀
-
 This project provides a robust framework for analyzing cryptocurrency market data from Binance and CoinMarketCap, focusing on identifying valuable features for intraday trading strategies. It's designed for modularity and extensibility, allowing for easy integration of new analysis techniques.
 
 ### ✨ Experiment Design & Methodology ✨
