@@ -21,7 +21,7 @@ LOW_CAP_THRESHOLD = 100_000_000  # 100 Million
 MID_CAP_THRESHOLD = 1_000_000_000  # 1 Billion
 
 # Number of past days to fetch data fors
-N_DAYS = 5
+N_DAYS = 14
 
 # Output directory
 OUTPUT_DIR_PREFIX = "analysis_output"
