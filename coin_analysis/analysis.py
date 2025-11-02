@@ -132,6 +132,17 @@ def analyze_and_report(binance_data, market_cap_data):
     with open(os.path.join(OUTPUT_DIR, "report.md"), "w") as f:
         f.write(report)
     
+    # --- Save Group Symbols to JSON ---
+    import json
+    symbols_for_json = {
+        "low-cap": groups['low']['symbol'].tolist() if 'low' in groups and not groups['low'].empty else [],
+        "mid-cap": groups['mid']['symbol'].tolist() if 'mid' in groups and not groups['mid'].empty else [],
+        "top-cap": groups['top']['symbol'].tolist() if 'top' in groups and not groups['top'].empty else []
+    }
+    json_output_path = os.path.join(OUTPUT_DIR, "symbols_def.json")
+    with open(json_output_path, "w") as f:
+        json.dump(symbols_for_json, f, indent=3)
+
     print(f"Analysis complete. Report and data saved in '{OUTPUT_DIR}' directory.")
 
 
